@@ -34,7 +34,15 @@ export interface CreateAssessmentRequest {
   readonly additionalInstructions?: string | undefined;
 }
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
+const getApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_BASE_URL) return import.meta.env.VITE_API_BASE_URL;
+  // If we're on the Vite dev server, point to the backend port
+  if (window.location.port === "5173") return `http://${window.location.hostname}:4000`;
+  // Otherwise, use the current origin (production)
+  return window.location.origin;
+};
+
+const apiBaseUrl = getApiBaseUrl();
 console.log(`VedaAI Frontend: Using API Base URL: ${apiBaseUrl}`);
 
 const readResponseError = async (response: Response): Promise<string> => {

@@ -52,7 +52,7 @@ export const createRedisConnection = (
   return new Redis(redisUrl, {
     maxRetriesPerRequest: null,
     enableReadyCheck: false,
-    family: 0, // Try both IPv4 and IPv6
+    family: 4, // Force IPv4 for better compatibility
     reconnectOnError: (err: Error) => {
       const targetError = "READONLY";
       if (err.message.includes(targetError)) {

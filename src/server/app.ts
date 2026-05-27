@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 import cors from "cors";
 import express, { type Express } from "express";
@@ -66,15 +67,24 @@ export const createApplication = (env: RuntimeEnv): ApplicationBundle => {
   app.use("/api/assessments", createAssessmentRouter(assessmentController));
 
   const distPath = path.resolve(process.cwd(), "dist");
+  const indexPath = path.join(distPath, "index.html");
   
+  console.log(`[App] Current Working Directory: ${process.cwd()}`);
+  console.log(`[App] Static Path: ${distPath}`);
+  console.log(`[App] Index Path: ${indexPath}`);
+  console.log(`[App] Index exists: ${fs.existsSync(indexPath)}`);
+
+  if (fs.existsSync(distPath)) {
+    console.log(`[App] Dist directory contents: ${fs.readdirSync(distPath).join(", ")}`);
+  }
+
   // 1. Serve static files (css, js, images)
   app.use(express.static(distPath));
 
-  // 2. Handle SPA routing using a standard middleware to bypass Express 5's path-to-regexp issues
+  // 2. Handle SPA routing using a standard middleware
   app.use((req, res, next) => {
     // Only handle GET requests that are not for the API
     if (req.method === "GET" && !req.path.startsWith("/api")) {
-      const indexPath = path.join(distPath, "index.html");
       return res.sendFile(indexPath, (err) => {
         if (err) {
           next();

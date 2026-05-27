@@ -1,0 +1,45 @@
+{
+  "name": "vedaai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "vite --host 127.0.0.1",
+    "start": "node dist/server/index.js",
+    "typecheck": "tsc --noEmit",
+    "worker:assessment": "node dist/server/workers/assessment-generation.worker.js"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.4.0",
+    "bullmq": "^5.56.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "ioredis": "^5.6.1",
+    "lucide-react": "^1.16.0",
+    "mongoose": "^8.15.0",
+    "multer": "^2.1.1",
+    "pdf-parse": "^2.4.5",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "react-hook-form": "^7.76.1",
+    "ws": "^8.21.0",
+    "zod": "^3.25.28",
+    "zod-to-json-schema": "^3.24.5",
+    "zustand": "^5.0.13"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/multer": "^2.1.0",
+    "@types/node": "^22.15.21",
+    "@types/pdf-parse": "^1.1.5",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "@types/ws": "^8.18.1",
+    "@vitejs/plugin-react": "^6.0.2",
+    "typescript": "^5.8.3",
+    "vite": "^8.0.14"
+  }
+}

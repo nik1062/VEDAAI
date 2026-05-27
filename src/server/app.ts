@@ -67,18 +67,21 @@ export const createApplication = (env: RuntimeEnv): ApplicationBundle => {
 
   const distPath = path.resolve(process.cwd(), "dist");
   
-  // Serve static files
+  // 1. Serve static files (css, js, images)
   app.use(express.static(distPath));
 
-  // Express 5 requires named parameters for wildcards: use "/*" or "/:path*"
-  app.get("(.*)", (req, res, next) => {
+  // 2. Handle SPA routing for any other GET requests that are not API calls
+  app.get("/:path*", (req, res, next) => {
+    // If it's an API route, don't serve index.html, let it fall through to 404
     if (req.path.startsWith("/api")) {
       return next();
     }
+    
+    // Serve index.html for all other routes to support client-side routing
     const indexPath = path.join(distPath, "index.html");
     res.sendFile(indexPath, (err) => {
       if (err) {
-        console.error(`Failed to serve index.html from ${indexPath}:`, err);
+        // If index.html is actually missing, pass to error handler
         next();
       }
     });

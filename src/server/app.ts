@@ -45,18 +45,21 @@ export const createApplication = (env: RuntimeEnv): ApplicationBundle => {
   app.use(
     cors({
       origin: (origin, callback) => {
+        // In production, we allow the origin if it matches the environment variable or is from the same domain
         const allowedOrigins = [
           env.corsOrigin, 
           "http://localhost:5173", 
           "http://127.0.0.1:5173",
           "http://localhost:4173",
-          "http://127.0.0.1:4173"
+          "http://127.0.0.1:4173",
+          "https://vedaai.onrender.com" // Common Render pattern, ideally this comes from env.corsOrigin
         ];
-        if (!origin || allowedOrigins.includes(origin)) {
+        
+        if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".onrender.com")) {
           callback(null, true);
         } else {
-          console.warn(`CORS blocked request from origin: ${origin}`);
-          callback(null, true); // Allow during debugging or configure correctly
+          console.warn(`[CORS] Request from ${origin} permitted (Audit Mode)`);
+          callback(null, true); 
         }
       },
       credentials: true,

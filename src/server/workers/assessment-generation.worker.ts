@@ -202,7 +202,7 @@ export const createAssessmentGenerationWorker = (
         apiKey: env.openAiApiKey,
         baseUrl: env.openAiBaseUrl,
         model: env.openAiModel,
-        timeoutMs: 120_000,
+        timeoutMs: 300_000, // Increased to 5 minutes for large assessments
       }),
     assessmentRepository:
       dependencies.assessmentRepository ?? new AssessmentRepository(),

@@ -62,13 +62,16 @@ export class GenerationWebSocketGateway {
     });
 
     this.websocketServer.on("connection", (websocket, request) => {
+      console.log(`[WS] New connection attempt from ${request.socket.remoteAddress}`);
       this.registerConnection(websocket, request);
     });
   }
 
   async start(): Promise<void> {
+    console.log("[WS] Subscribing to vedaai:generation channel...");
     await this.subscriber.subscribe("vedaai:generation");
-    this.subscriber.on("message", (_channel, message) => {
+    this.subscriber.on("message", (channel, message) => {
+      console.log(`[WS] Received message on channel ${channel}: ${message.slice(0, 100)}...`);
       this.handleRedisMessage(message);
     });
     this.subscriber.on("error", (error) => {

@@ -65,15 +65,13 @@ export const createApplication = (env: RuntimeEnv): ApplicationBundle => {
   app.use("/api/health", createHealthRouter());
   app.use("/api/assessments", createAssessmentRouter(assessmentController));
 
-  // ROOT is the base dist folder
-  const rootPath = path.resolve(process.cwd());
-  const distPath = path.join(rootPath, "dist");
+  const distPath = path.resolve(process.cwd(), "dist");
   
-  // Serve static files (assets, etc.)
+  // Serve static files
   app.use(express.static(distPath));
 
-  // Handle SPA routing: serve index.html for any non-API routes
-  app.get("*", (req, res, next) => {
+  // Express 5 requires named parameters for wildcards: use "/*" or "/:path*"
+  app.get("(.*)", (req, res, next) => {
     if (req.path.startsWith("/api")) {
       return next();
     }

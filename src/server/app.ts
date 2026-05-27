@@ -42,9 +42,19 @@ export const createApplication = (env: RuntimeEnv): ApplicationBundle => {
   const assessmentController = new AssessmentController(assignmentCreationService);
 
   app.disable("x-powered-by");
+
+  // Relax CSP for debugging and fix 'eval' errors
+  app.use((_req, res, next) => {
+    res.setHeader(
+      "Content-Security-Policy",
+      "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline' wss: ws:; img-src * data: blob:; frame-src *; style-src * 'unsafe-inline';"
+    );
+    next();
+  });
+
   app.use(
     cors({
-      origin: true, // Allow all origins during debugging "nothing working"
+      origin: true, 
       credentials: true,
       methods: ["GET", "POST", "OPTIONS", "PATCH", "DELETE"],
       allowedHeaders: ["Content-Type", "x-owner-id", "Authorization"],
@@ -54,11 +64,26 @@ export const createApplication = (env: RuntimeEnv): ApplicationBundle => {
   app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 
   app.use("/api/health", createHealthRouter());
+  app.use("/api/debug", (_req, res) => {
+    const distPath = path.resolve(__dirname, "..");
+    const rootDist = path.join(process.cwd(), "dist");
+    res.json({
+      cwd: process.cwd(),
+      dirname: __dirname,
+      distPath,
+      rootDist,
+      distExists: fs.existsSync(distPath),
+      rootDistExists: fs.existsSync(rootDist),
+      env: env.nodeEnv
+    });
+  });
   app.use("/api/assessments", createAssessmentRouter(assessmentController));
 
-  // Determine dist path relative to this file
-  // In production (dist/server/app.js), dist is one level up
-  const distPath = path.resolve(__dirname, "..");
+  // Determine dist path robustly
+  let distPath = path.resolve(__dirname, "..");
+  if (!fs.existsSync(path.join(distPath, "index.html"))) {
+    distPath = path.join(process.cwd(), "dist");
+  }
   const indexPath = path.join(distPath, "index.html");
   
   console.log(`[App] Server started in ${env.nodeEnv} mode`);

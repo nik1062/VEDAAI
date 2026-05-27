@@ -66,17 +66,20 @@ export const createApplication = (env: RuntimeEnv): ApplicationBundle => {
   app.use("/api/health", createHealthRouter());
   app.use("/api/assessments", createAssessmentRouter(assessmentController));
 
-  // Serve static files from the dist directory (where both client and server are built)
-  const distPath = path.resolve(process.cwd(), "dist");
-  app.use(express.static(distPath));
+  // Serve static files from the dist/client directory (where Vite builds)
+  const clientDistPath = path.resolve(process.cwd(), "dist");
+  app.use(express.static(clientDistPath));
 
   // Handle SPA routing: serve index.html for any non-API routes
   app.get("*", (req, res, next) => {
     if (req.path.startsWith("/api")) {
       return next();
     }
-    res.sendFile(path.join(distPath, "index.html"), (err) => {
+    // Try to serve index.html from dist
+    res.sendFile(path.join(clientDistPath, "index.html"), (err) => {
       if (err) {
+        // If index.html is missing, it might be in a different subfolder or not built
+        console.error("Failed to serve index.html:", err);
         next();
       }
     });

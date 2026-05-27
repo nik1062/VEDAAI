@@ -4,11 +4,19 @@ import { loadRuntimeEnv } from "./config/env.js";
 import { connectMongo, disconnectMongo } from "./database/mongoose.js";
 import { createApplication } from "./app.js";
 import { GenerationWebSocketGateway } from "./websocket/GenerationWebSocketGateway.js";
+import { createAssessmentGenerationWorker } from "./workers/assessment-generation.worker.js";
 
 const env = loadRuntimeEnv();
 await connectMongo(env);
 
 const { app, queueBundle } = createApplication(env);
+
+let worker: any = null;
+if (env.startWorkerInProcess) {
+  console.log("[Index] Starting in-process assessment worker...");
+  worker = createAssessmentGenerationWorker({ env });
+}
+
 const httpServer = createServer(app);
 const generationGateway = new GenerationWebSocketGateway({
   httpServer,
@@ -27,13 +35,19 @@ await new Promise<void>((resolve) => {
 const shutdown = async (signal: NodeJS.Signals): Promise<void> => {
   console.log(`Received ${signal}. Shutting down VedaAI API.`);
 
-  await Promise.allSettled([
+  const shutdownTasks = [
     generationGateway.close(),
     queueBundle.queueEvents.close(),
     queueBundle.queue.close(),
     queueBundle.connection.quit(),
     disconnectMongo(),
-  ]);
+  ];
+
+  if (worker) {
+    shutdownTasks.push(worker.close());
+  }
+
+  await Promise.allSettled(shutdownTasks);
 
   httpServer.close(() => {
     process.exit(0);

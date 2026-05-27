@@ -23,7 +23,14 @@ export interface RuntimeEnv {
   readonly openAiModel: string;
   readonly assessmentQueueName: "assessment-generation";
   readonly assessmentWorkerConcurrency: number;
+  readonly startWorkerInProcess: boolean;
 }
+
+const readBooleanEnv = (key: string, fallback: boolean): boolean => {
+  const value = readOptionalEnv(key);
+  if (value === undefined) return fallback;
+  return value === "true" || value === "1";
+};
 
 const readOptionalEnv = (key: string): string | undefined => {
   const value = process.env[key]?.trim();
@@ -80,4 +87,5 @@ export const loadRuntimeEnv = (): RuntimeEnv => ({
     "ASSESSMENT_WORKER_CONCURRENCY",
     4,
   ),
+  startWorkerInProcess: readBooleanEnv("START_WORKER_IN_PROCESS", true),
 });

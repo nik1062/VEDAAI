@@ -34,7 +34,7 @@ export interface CreateAssessmentRequest {
   readonly additionalInstructions?: string | undefined;
 }
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? `http://${window.location.hostname}:4000`;
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
 console.log(`VedaAI Frontend: Using API Base URL: ${apiBaseUrl}`);
 
 const readResponseError = async (response: Response): Promise<string> => {

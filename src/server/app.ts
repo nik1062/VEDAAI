@@ -99,16 +99,24 @@ export const createApplication = (env: RuntimeEnv): ApplicationBundle => {
     console.error(`[App] ERROR: Dist directory NOT found at ${distPath}`);
   }
 
-  // 1. Serve static files (css, js, images)
-  app.use(express.static(distPath));
+  // 1. Serve static files with caching for assets
+  app.use(express.static(distPath, {
+    maxAge: "1d",
+    index: false
+  }));
 
-  // 2. Handle SPA routing
+  // 2. Handle SPA routing with cache disabling for index.html
   app.use((req, res, next) => {
     if (req.method === "GET" && !req.path.startsWith("/api")) {
       if (fs.existsSync(indexPath)) {
+        // Force browser to fetch new index.html every time
+        res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
         return res.sendFile(indexPath);
       } else {
         console.error(`[App] SPA Routing failed: ${indexPath} not found`);
+        return res.status(404).send("Frontend build not found. Please run 'npm run build'.");
       }
     }
     next();

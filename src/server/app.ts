@@ -1,3 +1,4 @@
+import path from "node:path";
 import cors from "cors";
 import express, { type Express } from "express";
 import type { RuntimeEnv } from "./config/env.js";
@@ -64,6 +65,23 @@ export const createApplication = (env: RuntimeEnv): ApplicationBundle => {
 
   app.use("/api/health", createHealthRouter());
   app.use("/api/assessments", createAssessmentRouter(assessmentController));
+
+  // Serve static files from the dist directory (where both client and server are built)
+  const distPath = path.resolve(process.cwd(), "dist");
+  app.use(express.static(distPath));
+
+  // Handle SPA routing: serve index.html for any non-API routes
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api")) {
+      return next();
+    }
+    res.sendFile(path.join(distPath, "index.html"), (err) => {
+      if (err) {
+        next();
+      }
+    });
+  });
+
   app.use(notFoundMiddleware);
   app.use(errorBoundaryMiddleware);
 

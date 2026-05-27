@@ -70,21 +70,18 @@ export const createApplication = (env: RuntimeEnv): ApplicationBundle => {
   // 1. Serve static files (css, js, images)
   app.use(express.static(distPath));
 
-  // 2. Handle SPA routing for any other GET requests that are not API calls
-  app.get("/:path*", (req, res, next) => {
-    // If it's an API route, don't serve index.html, let it fall through to 404
-    if (req.path.startsWith("/api")) {
-      return next();
+  // 2. Handle SPA routing using a standard middleware to bypass Express 5's path-to-regexp issues
+  app.use((req, res, next) => {
+    // Only handle GET requests that are not for the API
+    if (req.method === "GET" && !req.path.startsWith("/api")) {
+      const indexPath = path.join(distPath, "index.html");
+      return res.sendFile(indexPath, (err) => {
+        if (err) {
+          next();
+        }
+      });
     }
-    
-    // Serve index.html for all other routes to support client-side routing
-    const indexPath = path.join(distPath, "index.html");
-    res.sendFile(indexPath, (err) => {
-      if (err) {
-        // If index.html is actually missing, pass to error handler
-        next();
-      }
-    });
+    next();
   });
 
   app.use(notFoundMiddleware);

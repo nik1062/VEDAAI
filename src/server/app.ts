@@ -40,12 +40,11 @@ export const createApplication = (env: RuntimeEnv): ApplicationBundle => {
   app.use(
     cors({
       origin: (origin, callback) => {
-        // Allow common local development origins
         const allowedOrigins = [
           env.corsOrigin, 
           "http://localhost:5173", 
           "http://127.0.0.1:5173",
-          "http://localhost:4173", // Vite preview
+          "http://localhost:4173",
           "http://127.0.0.1:4173"
         ];
         if (!origin || allowedOrigins.includes(origin)) {
@@ -66,20 +65,22 @@ export const createApplication = (env: RuntimeEnv): ApplicationBundle => {
   app.use("/api/health", createHealthRouter());
   app.use("/api/assessments", createAssessmentRouter(assessmentController));
 
-  // Serve static files from the dist/client directory (where Vite builds)
-  const clientDistPath = path.resolve(process.cwd(), "dist");
-  app.use(express.static(clientDistPath));
+  // ROOT is the base dist folder
+  const rootPath = path.resolve(process.cwd());
+  const distPath = path.join(rootPath, "dist");
+  
+  // Serve static files (assets, etc.)
+  app.use(express.static(distPath));
 
   // Handle SPA routing: serve index.html for any non-API routes
   app.get("*", (req, res, next) => {
     if (req.path.startsWith("/api")) {
       return next();
     }
-    // Try to serve index.html from dist
-    res.sendFile(path.join(clientDistPath, "index.html"), (err) => {
+    const indexPath = path.join(distPath, "index.html");
+    res.sendFile(indexPath, (err) => {
       if (err) {
-        // If index.html is missing, it might be in a different subfolder or not built
-        console.error("Failed to serve index.html:", err);
+        console.error(`Failed to serve index.html from ${indexPath}:`, err);
         next();
       }
     });

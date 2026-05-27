@@ -69,7 +69,7 @@ const readNodeEnv = (): RuntimeEnv["nodeEnv"] => {
 export const loadRuntimeEnv = (): RuntimeEnv => ({
   nodeEnv: readNodeEnv(),
   port: readPositiveIntegerEnv("PORT", 4000),
-  mongoUri: readOptionalEnv("MONGODB_URI") ?? "mongodb://127.0.0.1:27017/vedaai",
+  mongoUri: readRequiredEnv("MONGODB_URI"),
   corsOrigin: readOptionalEnv("CORS_ORIGIN") ?? "http://localhost:5173",
   redisUrl: readOptionalEnv("REDIS_URL") ?? "redis://127.0.0.1:6379",
   openAiApiKey: readRequiredEnv("OPENAI_API_KEY"),
